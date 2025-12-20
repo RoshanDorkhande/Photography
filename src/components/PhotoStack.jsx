@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import './Photostack.css';
-import img1 from '../Images/11.JPG';
-import img2 from '../Images/22.JPG';
-import img3 from '../Images/33.JPG';
-import img4 from '../Images/44.JPG';
+import img1 from '../Images/11.jpg';
+import img2 from '../Images/22.jpg';
+import img3 from '../Images/33.jpg';
+import img4 from '../Images/44.jpg';
 
 const PhotoStack = () => {
   // Initial list of images
