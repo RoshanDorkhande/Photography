@@ -1,9 +1,7 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import gsap from 'gsap';
-import { useGSAP } from '@gsap/react';
-import { motion } from 'framer-motion';
 import { useData } from '../context/DataContext';
+import { getOptimizedImageUrl } from '../utils/imageUtils';
 
 const ServiceGallery = () => {
     const { id } = useParams();
@@ -11,6 +9,8 @@ const ServiceGallery = () => {
     const containerRef = useRef(null);
     const columnsRef = useRef([]);
     const { galleryImages } = useData();
+    const [selectedIndex, setSelectedIndex] = useState(null);
+    const [isAnimating, setIsAnimating] = useState(true);
 
     // Filter images for this service
     const images = galleryImages.filter(img => img.serviceId === id);
@@ -24,35 +24,122 @@ const ServiceGallery = () => {
     // Specific offsets for that "organic" look
     const offsets = [0, 120, 60, 180, 40];
 
-    useGSAP(() => {
-        const cols = columnsRef.current;
+    // GSAP animations with dynamic import
+    useEffect(() => {
+        let ctx;
+        (async () => {
+            const gsap = (await import('gsap')).default;
 
-        // Initial state: push down
-        gsap.set(cols, { y: '150vh' });
+            ctx = gsap.context(() => {
+                const container = containerRef.current;
+                const cols = columnsRef.current;
 
-        // Animation sequence: Middle (2) -> Neighbors (1,3) -> Outer (0,4)
-        const tl = gsap.timeline({ defaults: { ease: 'power4.out', duration: 2 }, delay: 0.5 }); // Added delay for page transition
+                // Slide-in animation for the entire gallery
+                gsap.fromTo(container,
+                    { x: '100%' },
+                    {
+                        x: 0,
+                        duration: 0.8,
+                        ease: 'power3.out',
+                        onComplete: () => setIsAnimating(false)
+                    }
+                );
 
-        tl.to(cols[2], { y: 0 })
-            .to([cols[1], cols[3]], { y: 0 }, '-=1.8')
-            .to([cols[0], cols[4]], { y: 0 }, '-=1.8');
+                // Column stagger animation
+                gsap.set(cols, { y: '150vh' });
+                const tl = gsap.timeline({ defaults: { ease: 'power4.out', duration: 2 }, delay: 0.5 });
+                tl.to(cols[2], { y: 0 })
+                    .to([cols[1], cols[3]], { y: 0 }, '-=1.8')
+                    .to([cols[0], cols[4]], { y: 0 }, '-=1.8');
+            });
+        })();
 
-    }, { scope: containerRef });
+        return () => ctx?.revert();
+    }, []);
+
+    // Exit animation
+    const handleClose = async () => {
+        const gsap = (await import('gsap')).default;
+        gsap.to(containerRef.current, {
+            x: '100%',
+            duration: 0.8,
+            ease: 'power3.inOut',
+            onComplete: () => navigate('/')
+        });
+    };
+
+    // Navigation Handlers
+    const showNext = (e) => {
+        e?.stopPropagation();
+        setSelectedIndex((prev) => (prev + 1) % images.length);
+    };
+
+    const showPrev = (e) => {
+        e?.stopPropagation();
+        setSelectedIndex((prev) => (prev - 1 + images.length) % images.length);
+    };
+
+    const closeLightbox = () => {
+        setSelectedIndex(null);
+    };
+
+    // Keyboard Navigation
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (selectedIndex === null) return;
+            if (e.key === 'ArrowRight') showNext();
+            if (e.key === 'ArrowLeft') showPrev();
+            if (e.key === 'Escape') closeLightbox();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [selectedIndex]);
+
+    // Swipe Handlers
+    const [touchStart, setTouchStart] = useState(null);
+    const [touchEnd, setTouchEnd] = useState(null);
+    const minSwipeDistance = 50;
+
+    const onTouchStart = (e) => {
+        setTouchEnd(null);
+        setTouchStart(e.targetTouches[0].clientX);
+    };
+
+    const onTouchMove = (e) => {
+        setTouchEnd(e.targetTouches[0].clientX);
+    };
+
+    const onTouchEnd = () => {
+        if (!touchStart || !touchEnd) return;
+        const distance = touchStart - touchEnd;
+        const isLeftSwipe = distance > minSwipeDistance;
+        const isRightSwipe = distance < -minSwipeDistance;
+        if (isLeftSwipe) {
+            showNext();
+        }
+        if (isRightSwipe) {
+            showPrev();
+        }
+    };
 
     return (
-        <motion.div
+        <div
             className="service-gallery"
             ref={containerRef}
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 200, overflowY: 'auto' }}
-            data-lenis-prevent
+            style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                zIndex: 200,
+                overflowY: 'auto',
+                transform: 'translateX(100%)' // Initial state for GSAP
+            }}
         >
             <div className="gallery-header">
                 <div className="gallery-title">{id.replace('-', ' ')}</div>
-                <button className="close-btn hover-trigger" onClick={() => navigate('/')}>
+                <button className="close-btn hover-trigger" onClick={handleClose}>
                     &times;
                 </button>
             </div>
@@ -66,14 +153,51 @@ const ServiceGallery = () => {
                         style={{ marginTop: `${offsets[colIndex]}px` }}
                     >
                         {col.map((img) => (
-                            <div key={img.id} className="gallery-item">
-                                <img src={img.src} alt={`Gallery ${img.id}`} />
+                            <div
+                                key={img.id}
+                                className="gallery-item"
+                                onClick={() => {
+                                    const index = images.findIndex(i => i.id === img.id);
+                                    setSelectedIndex(index);
+                                }}
+                                style={{ cursor: 'pointer' }}
+                            >
+                                <img
+                                    src={getOptimizedImageUrl(img.src, 'thumbnail')}
+                                    alt={`Gallery ${img.id}`}
+                                    loading="lazy"
+                                />
                             </div>
                         ))}
                     </div>
                 ))}
             </div>
-        </motion.div>
+
+            {/* Lightbox Overlay */}
+            {selectedIndex !== null && (
+                <div
+                    className="lightbox-overlay open"
+                    onClick={closeLightbox}
+                    onTouchStart={onTouchStart}
+                    onTouchMove={onTouchMove}
+                    onTouchEnd={onTouchEnd}
+                >
+                    <button className="lightbox-nav lightbox-prev" onClick={showPrev}>&#10094;</button>
+
+                    <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
+                        <button className="lightbox-close" onClick={closeLightbox}>&times;</button>
+                        <img
+                            src={getOptimizedImageUrl(images[selectedIndex].src, 'lightbox')}
+                            alt="Full view"
+                            className="lightbox-img"
+                        />
+                        {images[selectedIndex].caption && <p className="lightbox-caption">{images[selectedIndex].caption}</p>}
+                    </div>
+
+                    <button className="lightbox-nav lightbox-next" onClick={showNext}>&#10095;</button>
+                </div>
+            )}
+        </div>
     );
 };
 

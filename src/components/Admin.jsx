@@ -4,7 +4,7 @@ import { useData } from '../context/DataContext';
 import { useNavigate } from 'react-router-dom';
 
 const Admin = () => {
-    const { services, works, heroSettings, galleryImages, aboutData, reviews, addService, updateService, deleteService, updateWork, updateHero, updateAbout, addGalleryImage, updateGalleryImage, deleteGalleryImage, addReview, updateReview, deleteReview } = useData();
+    const { services, works, heroSettings, galleryImages, aboutData, reviews, addService, updateService, deleteService, addWork, updateWork, deleteWork, updateHero, updateAbout, addGalleryImage, updateGalleryImage, deleteGalleryImage, addReview, updateReview, deleteReview } = useData();
     const [activeTab, setActiveTab] = useState('services');
     const [selectedService, setSelectedService] = useState(null); // For Image View
     const navigate = useNavigate();
@@ -15,7 +15,8 @@ const Admin = () => {
     // Service Form State
     const [newService, setNewService] = useState({ name: '', tags: '' });
 
-    // Work Form State (for editing)
+    // Work Form State
+    const [newWork, setNewWork] = useState({ title: '', cat: '', img: '', serviceId: '' });
     const [editingWork, setEditingWork] = useState(null);
 
     // Image Form State
@@ -42,6 +43,17 @@ const Admin = () => {
             } catch (err) {
                 toast.error('Failed to add service.');
             }
+        }
+    };
+
+    const handleAddWork = async (e) => {
+        e.preventDefault();
+        try {
+            await addWork(newWork);
+            toast.success('Work item added successfully!');
+            setNewWork({ title: '', cat: '', img: '', serviceId: '' });
+        } catch (err) {
+            toast.error('Failed to add work item.');
         }
     };
 
@@ -197,7 +209,7 @@ const Admin = () => {
                             {filteredImages.map((img) => (
                                 <div key={img.id} className="admin-card">
                                     <div className="card-img-wrapper">
-                                        <img src={img.src} alt={img.caption} />
+                                        <img src={img.src} alt={img.caption} loading="lazy" />
                                     </div>
                                     <div className="card-actions">
                                         <button onClick={() => setEditingImage(img)}>Edit</button>
@@ -269,16 +281,84 @@ const Admin = () => {
                 {activeTab === 'work' && (
                     <div className="tab-pane">
                         <h2>Manage Work Grid</h2>
+
+                        {/* Add Work Form */}
+                        <form onSubmit={handleAddWork} className="admin-form">
+                            <h3>Add New Work</h3>
+                            <input
+                                type="text"
+                                placeholder="Title"
+                                value={newWork.title}
+                                onChange={(e) => setNewWork({ ...newWork, title: e.target.value })}
+                                required
+                            />
+                            <input
+                                type="text"
+                                placeholder="Category"
+                                value={newWork.cat}
+                                onChange={(e) => setNewWork({ ...newWork, cat: e.target.value })}
+                                required
+                            />
+                            <select
+                                value={newWork.serviceId || ''}
+                                onChange={(e) => setNewWork({ ...newWork, serviceId: e.target.value })}
+                                style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ddd', marginBottom: '10px', width: '100%' }}
+                            >
+                                <option value="">-- Link to Service (Optional) --</option>
+                                {services.map(service => (
+                                    <option key={service.id} value={service.id}>
+                                        {service.name}
+                                    </option>
+                                ))}
+                            </select>
+
+                            <div className="form-group">
+                                <label>Upload Image:</label>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={async (e) => {
+                                        const file = e.target.files[0];
+                                        if (file) {
+                                            const formData = new FormData();
+                                            formData.append('image', file);
+                                            try {
+                                                const res = await fetch(`${API_URL}/upload`, {
+                                                    method: 'POST',
+                                                    body: formData
+                                                });
+                                                const data = await res.json();
+                                                setNewWork({ ...newWork, img: data.url, imgPublicId: data.public_id });
+                                                toast.success('Image uploaded!');
+                                            } catch (err) {
+                                                toast.error("Failed to upload image");
+                                            }
+                                        }
+                                    }}
+                                />
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="Image URL (or upload above)"
+                                value={newWork.img}
+                                onChange={(e) => setNewWork({ ...newWork, img: e.target.value })}
+                                required
+                            />
+                            <button type="submit">Add Work Item</button>
+                        </form>
+
                         <div className="admin-grid">
                             {works.map((work, index) => (
                                 <div key={work.id} className="admin-card">
                                     <img src={work.img} alt={work.title} />
                                     <div className="card-actions">
                                         <button onClick={() => setEditingWork({ index, data: work })}>Edit</button>
+                                        <button onClick={() => deleteWork(index)} className="delete-btn">Delete</button>
                                     </div>
                                     <div className="card-info">
                                         <p>{work.title}</p>
                                         <small>{work.cat}</small>
+                                        {work.serviceId && <small style={{ display: 'block', color: '#3b82f6' }}>Linked to Service</small>}
                                     </div>
                                 </div>
                             ))}
@@ -302,6 +382,19 @@ const Admin = () => {
                                             value={editingWork.data.cat}
                                             onChange={(e) => setEditingWork({ ...editingWork, data: { ...editingWork.data, cat: e.target.value } })}
                                         />
+
+                                        <select
+                                            value={editingWork.data.serviceId || ''}
+                                            onChange={(e) => setEditingWork({ ...editingWork, data: { ...editingWork.data, serviceId: e.target.value } })}
+                                            style={{ padding: '10px', borderRadius: '5px', border: '1px solid #ddd', marginBottom: '10px', width: '100%' }}
+                                        >
+                                            <option value="">-- Link to Service (Optional) --</option>
+                                            {services.map(service => (
+                                                <option key={service.id} value={service.id}>
+                                                    {service.name}
+                                                </option>
+                                            ))}
+                                        </select>
 
                                         <div className="form-group">
                                             <label>Current Image:</label>
@@ -346,7 +439,6 @@ const Admin = () => {
                         )}
                     </div>
                 )}
-
                 {activeTab === 'about' && (
                     <div className="tab-pane">
                         <h2>About Page Settings</h2>
@@ -467,211 +559,216 @@ const Admin = () => {
                             <button type="submit">Save About Settings</button>
                         </form>
                     </div>
-                )}
+                )
+                }
 
-                {activeTab === 'reviews' && (
-                    <div className="tab-pane">
-                        <h2>Manage Reviews</h2>
-                        <form onSubmit={handleAddReview} className="admin-form">
-                            <textarea
-                                placeholder="Review"
-                                value={newReview.quote}
-                                onChange={(e) => setNewReview({ ...newReview, quote: e.target.value })}
-                                required
-                                rows="5"
-                                style={{ width: '100%' }}
-                            />
-                            <div className="form-group-row">
-                                <input
-                                    type="text"
-                                    placeholder="Author Name"
-                                    value={newReview.author}
-                                    onChange={(e) => setNewReview({ ...newReview, author: e.target.value })}
+                {
+                    activeTab === 'reviews' && (
+                        <div className="tab-pane">
+                            <h2>Manage Reviews</h2>
+                            <form onSubmit={handleAddReview} className="admin-form">
+                                <textarea
+                                    placeholder="Review"
+                                    value={newReview.quote}
+                                    onChange={(e) => setNewReview({ ...newReview, quote: e.target.value })}
                                     required
+                                    rows="5"
+                                    style={{ width: '100%' }}
                                 />
-                                <input
-                                    type="text"
-                                    placeholder="Place"
-                                    value={newReview.role}
-                                    onChange={(e) => setNewReview({ ...newReview, role: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Avatar</label>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={async (e) => {
-                                        const file = e.target.files[0];
-                                        if (file) {
-                                            const formData = new FormData();
-                                            formData.append('image', file);
-                                            try {
-                                                const res = await fetch(`${API_URL}/upload`, {
-                                                    method: 'POST',
-                                                    body: formData
-                                                });
-                                                const data = await res.json();
-                                                setNewReview({ ...newReview, avatar: data.url, avatarPublicId: data.public_id });
-                                            } catch (err) {
-                                                alert("Failed to upload image");
+                                <div className="form-group-row">
+                                    <input
+                                        type="text"
+                                        placeholder="Author Name"
+                                        value={newReview.author}
+                                        onChange={(e) => setNewReview({ ...newReview, author: e.target.value })}
+                                        required
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="Place"
+                                        value={newReview.role}
+                                        onChange={(e) => setNewReview({ ...newReview, role: e.target.value })}
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Avatar</label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={async (e) => {
+                                            const file = e.target.files[0];
+                                            if (file) {
+                                                const formData = new FormData();
+                                                formData.append('image', file);
+                                                try {
+                                                    const res = await fetch(`${API_URL}/upload`, {
+                                                        method: 'POST',
+                                                        body: formData
+                                                    });
+                                                    const data = await res.json();
+                                                    setNewReview({ ...newReview, avatar: data.url, avatarPublicId: data.public_id });
+                                                } catch (err) {
+                                                    alert("Failed to upload image");
+                                                }
                                             }
-                                        }
-                                    }}
-                                />
-                                <input
-                                    type="text"
-                                    placeholder="Image URL"
-                                    value={newReview.avatar}
-                                    onChange={(e) => setNewReview({ ...newReview, avatar: e.target.value })}
-                                    style={{ marginTop: '5px' }}
-                                />
-                            </div>
-                            <button type="submit">Add Review</button>
-                        </form>
-
-                        <div className="admin-list">
-                            {reviews.map((review, index) => (
-                                <div key={review._id || index} className="admin-item">
-                                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
-                                        {/* Avatar in List */}
-                                        <div style={{
-                                            width: '40px',
-                                            height: '40px',
-                                            borderRadius: '50%',
-                                            background: review.avatar ? `url(${review.avatar}) center/cover` : '#f0f0f0',
-                                            flexShrink: 0,
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center'
-                                        }}>
-                                            {!review.avatar && (
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#999" width="60%" height="60%">
-                                                    <path fillRule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clipRule="evenodd" />
-                                                </svg>
-                                            )}
-                                        </div>
-                                        <div>
-                                            <strong>{review.author}</strong>
-                                            <p style={{ fontSize: '0.9rem', color: '#666' }}>{review.role}</p>
-                                            <p>"{review.quote}"</p>
-                                        </div>
-                                    </div>
-                                    <div className="item-actions">
-                                        <button onClick={() => setEditingReview(review)} className="view-btn">Edit</button>
-                                        <button onClick={() => deleteReview(review._id)} className="delete-btn">Delete</button>
-                                    </div>
+                                        }}
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="Image URL"
+                                        value={newReview.avatar}
+                                        onChange={(e) => setNewReview({ ...newReview, avatar: e.target.value })}
+                                        style={{ marginTop: '5px' }}
+                                    />
                                 </div>
-                            ))}
-                        </div>
+                                <button type="submit">Add Review</button>
+                            </form>
 
-                        {editingReview && (
-                            <div className="modal-overlay open">
-                                <div className="modal-content">
-                                    <button className="modal-close" onClick={() => setEditingReview(null)}>&times;</button>
-                                    <h3>Edit Review</h3>
-                                    <form onSubmit={handleUpdateReview} className="admin-form">
-                                        <textarea
-                                            value={editingReview.quote}
-                                            onChange={(e) => setEditingReview({ ...editingReview, quote: e.target.value })}
-                                            rows="5"
-                                            style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px', resize: 'vertical' }}
-                                        />
-                                        <div className="form-group-row">
-                                            <input
-                                                type="text"
-                                                value={editingReview.author}
-                                                onChange={(e) => setEditingReview({ ...editingReview, author: e.target.value })}
-                                            />
-                                            <input
-                                                type="text"
-                                                value={editingReview.role}
-                                                onChange={(e) => setEditingReview({ ...editingReview, role: e.target.value })}
-                                            />
+                            <div className="admin-list">
+                                {reviews.map((review, index) => (
+                                    <div key={review._id || index} className="admin-item">
+                                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+                                            {/* Avatar in List */}
+                                            <div style={{
+                                                width: '40px',
+                                                height: '40px',
+                                                borderRadius: '50%',
+                                                background: review.avatar ? `url(${review.avatar}) center/cover` : '#f0f0f0',
+                                                flexShrink: 0,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center'
+                                            }}>
+                                                {!review.avatar && (
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#999" width="60%" height="60%">
+                                                        <path fillRule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clipRule="evenodd" />
+                                                    </svg>
+                                                )}
+                                            </div>
+                                            <div>
+                                                <strong>{review.author}</strong>
+                                                <p style={{ fontSize: '0.9rem', color: '#666' }}>{review.role}</p>
+                                                <p>"{review.quote}"</p>
+                                            </div>
                                         </div>
-                                        <div className="form-group">
-                                            <label>Avatar</label>
-                                            {editingReview.avatar && <img src={editingReview.avatar} alt="Avatar" style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover', marginBottom: '1rem' }} />}
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={async (e) => {
-                                                    const file = e.target.files[0];
-                                                    if (file) {
-                                                        const formData = new FormData();
-                                                        formData.append('image', file);
-                                                        try {
-                                                            const res = await fetch(`${API_URL}/upload`, {
-                                                                method: 'POST',
-                                                                body: formData
-                                                            });
-                                                            const data = await res.json();
-                                                            setEditingReview({ ...editingReview, avatar: data.url, avatarPublicId: data.public_id });
-                                                        } catch (err) {
-                                                            alert("Failed to upload image");
+                                        <div className="item-actions">
+                                            <button onClick={() => setEditingReview(review)} className="view-btn">Edit</button>
+                                            <button onClick={() => deleteReview(review._id)} className="delete-btn">Delete</button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {editingReview && (
+                                <div className="modal-overlay open">
+                                    <div className="modal-content">
+                                        <button className="modal-close" onClick={() => setEditingReview(null)}>&times;</button>
+                                        <h3>Edit Review</h3>
+                                        <form onSubmit={handleUpdateReview} className="admin-form">
+                                            <textarea
+                                                value={editingReview.quote}
+                                                onChange={(e) => setEditingReview({ ...editingReview, quote: e.target.value })}
+                                                rows="5"
+                                                style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px', resize: 'vertical' }}
+                                            />
+                                            <div className="form-group-row">
+                                                <input
+                                                    type="text"
+                                                    value={editingReview.author}
+                                                    onChange={(e) => setEditingReview({ ...editingReview, author: e.target.value })}
+                                                />
+                                                <input
+                                                    type="text"
+                                                    value={editingReview.role}
+                                                    onChange={(e) => setEditingReview({ ...editingReview, role: e.target.value })}
+                                                />
+                                            </div>
+                                            <div className="form-group">
+                                                <label>Avatar</label>
+                                                {editingReview.avatar && <img src={editingReview.avatar} alt="Avatar" style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover', marginBottom: '1rem' }} />}
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={async (e) => {
+                                                        const file = e.target.files[0];
+                                                        if (file) {
+                                                            const formData = new FormData();
+                                                            formData.append('image', file);
+                                                            try {
+                                                                const res = await fetch(`${API_URL}/upload`, {
+                                                                    method: 'POST',
+                                                                    body: formData
+                                                                });
+                                                                const data = await res.json();
+                                                                setEditingReview({ ...editingReview, avatar: data.url, avatarPublicId: data.public_id });
+                                                            } catch (err) {
+                                                                alert("Failed to upload image");
+                                                            }
                                                         }
-                                                    }
-                                                }}
-                                            />
-                                            <input
-                                                type="text"
-                                                placeholder="Image URL"
-                                                value={editingReview.avatar || ''}
-                                                onChange={(e) => setEditingReview({ ...editingReview, avatar: e.target.value })}
-                                                style={{ marginTop: '5px' }}
-                                            />
-                                        </div>
-                                        <button type="submit">Save Changes</button>
-                                    </form>
+                                                    }}
+                                                />
+                                                <input
+                                                    type="text"
+                                                    placeholder="Image URL"
+                                                    value={editingReview.avatar || ''}
+                                                    onChange={(e) => setEditingReview({ ...editingReview, avatar: e.target.value })}
+                                                    style={{ marginTop: '5px' }}
+                                                />
+                                            </div>
+                                            <button type="submit">Save Changes</button>
+                                        </form>
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                    </div>
-                )}
+                            )}
+                        </div>
+                    )
+                }
 
-                {activeTab === 'general' && (
-                    <div className="tab-pane">
-                        <h2>General Settings</h2>
-                        <form onSubmit={handleUpdateHero} className="admin-form">
-                            <h3>Main Tagline</h3>
-                            <div className="form-group">
-                                <label>Title Line 1</label>
-                                <input
-                                    type="text"
-                                    value={heroForm.title1}
-                                    onChange={(e) => setHeroForm({ ...heroForm, title1: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Title Line 2</label>
-                                <input
-                                    type="text"
-                                    value={heroForm.title2}
-                                    onChange={(e) => setHeroForm({ ...heroForm, title2: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Subtitle Line 1</label>
-                                <input
-                                    type="text"
-                                    value={heroForm.subtitle1}
-                                    onChange={(e) => setHeroForm({ ...heroForm, subtitle1: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Subtitle Line 2</label>
-                                <input
-                                    type="text"
-                                    value={heroForm.subtitle2}
-                                    onChange={(e) => setHeroForm({ ...heroForm, subtitle2: e.target.value })}
-                                />
-                            </div>
-                            <button type="submit">Save Settings</button>
-                        </form>
-                    </div>
-                )}
-            </div>
-        </div>
+                {
+                    activeTab === 'general' && (
+                        <div className="tab-pane">
+                            <h2>General Settings</h2>
+                            <form onSubmit={handleUpdateHero} className="admin-form">
+                                <h3>Main Tagline</h3>
+                                <div className="form-group">
+                                    <label>Title Line 1</label>
+                                    <input
+                                        type="text"
+                                        value={heroForm.title1}
+                                        onChange={(e) => setHeroForm({ ...heroForm, title1: e.target.value })}
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Title Line 2</label>
+                                    <input
+                                        type="text"
+                                        value={heroForm.title2}
+                                        onChange={(e) => setHeroForm({ ...heroForm, title2: e.target.value })}
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Subtitle Line 1</label>
+                                    <input
+                                        type="text"
+                                        value={heroForm.subtitle1}
+                                        onChange={(e) => setHeroForm({ ...heroForm, subtitle1: e.target.value })}
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Subtitle Line 2</label>
+                                    <input
+                                        type="text"
+                                        value={heroForm.subtitle2}
+                                        onChange={(e) => setHeroForm({ ...heroForm, subtitle2: e.target.value })}
+                                    />
+                                </div>
+                                <button type="submit">Save Settings</button>
+                            </form>
+                        </div>
+                    )
+                }
+            </div >
+        </div >
     );
 };
 

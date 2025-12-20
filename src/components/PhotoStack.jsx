@@ -1,46 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import './Photostack.css';
-import img1 from '../Images/11.jpg';
-import img2 from '../Images/22.jpg';
-import img3 from '../Images/33.jpg';
-import img4 from '../Images/44.jpg';
+import img1 from '../Images/optimized/11.webp';
+import img2 from '../Images/optimized/22.webp';
+import img3 from '../Images/optimized/33.webp';
+import img4 from '../Images/optimized/44.webp';
 
 const PhotoStack = () => {
-  // Initial list of images
-  const [images, setImages] = useState([
-    { id: 1, src: img1, alt: "Landscape" },
-    { id: 2, src: img2, alt: "Mountain" },
-    { id: 3, src: img3, alt: "Nature" },
-    { id: 4, src: img4, alt: "Top Image" }
-  ]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const images = [
+    { id: 1, src: img1, alt: "Photo 1" },
+    { id: 2, src: img2, alt: "Photo 2" },
+    { id: 3, src: img3, alt: "Photo 3" },
+    { id: 4, src: img4, alt: "Photo 4" }
+  ];
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setImages((prevImages) => {
-        // Create a copy of the array
-        const newArr = [...prevImages];
-        // Remove the first item (the one at the bottom of the stack)
-        const itemToMove = newArr.shift();
-        // Add it to the end (making it the new top image)
-        newArr.push(itemToMove);
-        return newArr;
-      });
-    }, 2000); // Change every 2 seconds
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    }, 2000);
 
-    // Cleanup interval on component unmount
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="image-stack">
-      <div className="ambient-glow"></div>
-      {images.map((image) => (
-        <img
-          key={image.id} // logic relies on unique IDs to track movement
-          src={image.src}
-          alt={image.alt}
-        />
-      ))}
+    <div className="image-stack simple"
+    fetchPriority='high'>
+      <img
+        src={images[currentIndex].src}
+        alt={images[currentIndex].alt}
+        className="hero-image"
+        
+      />
     </div>
   );
 };

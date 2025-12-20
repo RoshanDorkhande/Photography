@@ -1,5 +1,6 @@
 import React from 'react';
 import { useData } from '../context/DataContext';
+import { getOptimizedImageUrl } from '../utils/imageUtils';
 
 const Reviews = () => {
     const { reviews } = useData();
@@ -16,8 +17,8 @@ const Reviews = () => {
 
     return (
         <section className="reviews-section">
-            <div className="reviews-header" style={{display:'block', textAlign: 'center'}}>
-                <h2 className="section-title">See What Our <span style={{color:'#3b82f6', fontWeight:'500'}}>Happy Clients</span> Have To Say About Us.</h2>
+            <div className="reviews-header" style={{ display: 'block', textAlign: 'center' }}>
+                <h2 className="section-title">See What Our <span style={{ color: '#3b82f6', fontWeight: '500' }}>Happy Clients</span> Have To Say About Us.</h2>
 
             </div>
             <div className="reviews-track">
@@ -28,7 +29,7 @@ const Reviews = () => {
                             <p className="quote">"{review.quote}"</p>
                             <div className="author">
                                 <div className="author-avatar" style={{
-                                    backgroundImage: review.avatar ? `url(${review.avatar})` : 'none',
+                                    backgroundImage: review.avatar ? `url(${getOptimizedImageUrl(review.avatar, 'thumbnail')})` : 'none',
                                     backgroundColor: review.avatar ? '#ddd' : '#f0f0f0',
                                     backgroundSize: 'cover',
                                     backgroundPosition: 'center',

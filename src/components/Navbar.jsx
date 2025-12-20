@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ArrowRightIcon } from './Icons';
 
 const Navbar = ({ onOpen }) => {
     const navigate = useNavigate();
@@ -28,7 +29,7 @@ const Navbar = ({ onOpen }) => {
                         About
                     </button>
                     <button onClick={onOpen} className="menu-btn hover-trigger" style={{ background: 'transparent', color: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        Book a Shoot <i className="fas fa-arrow-right btn-icon"></i>
+                        Book a Shoot <ArrowRightIcon className="btn-icon" size={14} />
                     </button>
                 </div>
 

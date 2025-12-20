@@ -1,5 +1,6 @@
 import React from 'react';
 import './BookingModal.css';
+import { WhatsAppIcon, InstagramIcon, EnvelopeOutlineIcon } from './Icons';
 
 const BookingModal = ({ isOpen, onClose }) => {
     if (!isOpen) return null;
@@ -13,17 +14,17 @@ const BookingModal = ({ isOpen, onClose }) => {
 
                 <div className="contact-links">
                     <a href="https://wa.me/7719957189" target="_blank" rel="noopener noreferrer" className="contact-btn whatsapp hover-trigger">
-                        <i className="fab fa-whatsapp"></i>
+                        <WhatsAppIcon size={22} />
                         <span>WhatsApp</span>
                     </a>
 
                     <a href="https://www.instagram.com/skylinefilms_02?igsh=a2twbWQxc28yb3Q5" target="_blank" rel="noopener noreferrer" className="contact-btn instagram hover-trigger">
-                        <i className="fab fa-instagram"></i>
+                        <InstagramIcon size={22} />
                         <span>Instagram</span>
                     </a>
 
                     <a href="mailto:contact@skylinefilms.com" className="contact-btn email hover-trigger">
-                        <i className="far fa-envelope"></i>
+                        <EnvelopeOutlineIcon size={22} />
                         <span>Gmail</span>
                     </a>
                 </div>

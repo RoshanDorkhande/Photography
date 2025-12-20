@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useData } from '../context/DataContext';
 import { useNavigate } from 'react-router-dom';
+import { ArrowRightIcon } from './Icons';
 
 const Services = () => {
     const navigate = useNavigate();
@@ -52,10 +53,9 @@ const Services = () => {
                         key={index}
                         onClick={() => navigate(`/service/${service.id}`)}
                     >
-                        <i className="fas fa-arrow-right service-icon">
-                            <div className="service-name">{service.name}</div>
-                            <div className="service-tags">{service.tags}</div>
-                        </i>
+                        <ArrowRightIcon className="service-icon" size={24} />
+                        <div className="service-name">{service.name}</div>
+                        <div className="service-tags">{service.tags}</div>
                     </div>
                 ))}
             </section>

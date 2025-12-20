@@ -1,138 +1,34 @@
-/* PhotoStack.css */
-
-.image-stack {
+/* Simple PhotoStack - One image at a time */
+.image-stack.simple {
   position: relative;
-  width: 300px;
-  /* Adjust width as needed */
-  height: 400px;
-  /* Adjust height as needed */
+  width: 350px;
+  height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2rem;
+  /* Space from nav buttons */
 }
 
-.image-stack img {
-  position: absolute;
-  top: 0;
-  left: 0;
+.image-stack.simple .hero-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
   border-radius: 8px;
-  /* Optional: Rounded corners look nice */
-
-  /* This creates the smooth movement when an image changes position */
-  transition: all 1s ease-in-out;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
 }
 
-/* --- THE FAN OUT EFFECT --- */
-
-/* We use nth-last-child to look from the end of the list backwards. 
-   This ensures the "pile" looks messy regardless of how many items are in the array. 
-*/
-
-/* The items sitting immediately behind the top one */
-.image-stack img:nth-last-child(2) {
-  transform: rotate(28deg);
-  z-index: 2;
-}
-
-.image-stack img:nth-last-child(3) {
-  transform: rotate(-56deg);
-  z-index: 1;
-}
-
-.image-stack img:nth-last-child(4) {
-  transform: rotate(84deg);
-  z-index: 1;
-}
-
-/* Fallback for others further back in the stack */
-.image-stack img:nth-child(odd) {
-  transform: rotate(28deg);
-  z-index: 0;
-}
-
-.image-stack img:nth-child(even) {
-  transform: rotate(-28deg);
-  z-index: 0;
-}
-
-
-/* --- THE TOP IMAGE --- */
-/* The last image in the array is always the "Active" one on top */
-.image-stack img:last-child {
-  transform: rotate(0deg) translate(0, 0);
-  z-index: 10;
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.5);
-  /* Pop it out a bit more */
-}
-
-.ambient-glow {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  /* Centers the glow behind the images */
-
-  /* Size of the glow - should be slightly larger than your images */
-  width: 400px;
-  height: 400px;
-
-  /* The Glow Effect */
-  background: rgba(59, 130, 246, 0.6);
-  /* Use your specific Blue Hex Code here */
-  filter: blur(100px);
-  /* This creates the soft diffusion */
-  border-radius: 50%;
-  /* Makes it a circle */
-  z-index: -1;
-  /* Ensures it stays BEHIND the images */
-
-  /* Optional: A slight pulse animation to make it feel alive */
-  animation: pulse-glow 4s infinite alternate;
-}
-
-@keyframes pulse-glow {
-  0% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0.5;
-  }
-
-  100% {
-    transform: translate(-50%, -50%) scale(1.1);
-    opacity: 0.7;
-  }
-}
-
+/* Mobile responsiveness */
 @media (max-width: 768px) {
-  .image-stack {
-    margin-top: 20px;
-    width: 180px;
-    height: 240px;
+  .image-stack.simple {
+    width: 280px;
+    height: 400px;
   }
+}
 
-  /* Reduce rotation angles on mobile to prevent overflow */
-  .image-stack img:nth-last-child(2) {
-    transform: rotate(12deg);
-  }
-
-  .image-stack img:nth-last-child(3) {
-    transform: rotate(-15deg);
-  }
-
-  .image-stack img:nth-last-child(4) {
-    transform: rotate(18deg);
-  }
-
-  .image-stack img:nth-child(odd) {
-    transform: rotate(12deg);
-  }
-
-  .image-stack img:nth-child(even) {
-    transform: rotate(-12deg);
-  }
-
-  .ambient-glow {
-    width: 200px;
-    height: 200px;
+@media (max-width: 480px) {
+  .image-stack.simple {
+    width: 220px;
+    height: 320px;
   }
 }

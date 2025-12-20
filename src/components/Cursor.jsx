@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 
 const Cursor = () => {
@@ -8,61 +8,86 @@ const Cursor = () => {
     const location = useLocation();
     const isDark = location.pathname === '/about' || isHoveringWhite;
 
+    // Store mouse position in ref to avoid re-renders
+    const mousePos = useRef({ x: 0, y: 0 });
+    const rafId = useRef(null);
+
     useEffect(() => {
         const cursorDot = dotRef.current;
         const cursorOutline = outlineRef.current;
 
-        const moveCursor = (e) => {
-            const posX = e.clientX;
-            const posY = e.clientY;
-
+        // Use transform instead of left/top for better performance
+        const updateCursor = () => {
             if (cursorDot) {
-                cursorDot.style.left = `${posX}px`;
-                cursorDot.style.top = `${posY}px`;
+                cursorDot.style.transform = `translate(${mousePos.current.x}px, ${mousePos.current.y}px)`;
             }
-
             if (cursorOutline) {
-                cursorOutline.animate({
-                    left: `${posX}px`,
-                    top: `${posY}px`
-                }, { duration: 500, fill: "forwards" });
+                cursorOutline.style.transform = `translate(${mousePos.current.x}px, ${mousePos.current.y}px)`;
             }
         };
 
-        window.addEventListener("mousemove", moveCursor);
+        // Throttled mouse move handler using RAF
+        const moveCursor = (e) => {
+            mousePos.current.x = e.clientX;
+            mousePos.current.y = e.clientY;
 
-        // Hover effects
-        const handleMouseEnter = () => cursorOutline?.classList.add('hovered');
-        const handleMouseLeave = () => cursorOutline?.classList.remove('hovered');
+            // Cancel any pending animation frame
+            if (rafId.current) {
+                cancelAnimationFrame(rafId.current);
+            }
 
-        // Global event delegation for hover effects
+            // Schedule update on next frame
+            rafId.current = requestAnimationFrame(updateCursor);
+        };
+
+        window.addEventListener("mousemove", moveCursor, { passive: true });
+
+        // Hover effects - debounced
+        let hoverTimeout;
         const handleMouseOver = (e) => {
-            if (e.target.closest('.hover-trigger') || e.target.closest('a') || e.target.closest('button')) {
-                cursorOutline?.classList.add('hovered');
-            } else {
-                cursorOutline?.classList.remove('hovered');
-            }
+            // Clear previous timeout
+            clearTimeout(hoverTimeout);
 
-            // Check for white background sections (e.g., Footer)
-            if (e.target.closest('#contact') || e.target.closest('.white-section')) {
-                setIsHoveringWhite(true);
-            } else {
-                setIsHoveringWhite(false);
-            }
+            hoverTimeout = setTimeout(() => {
+                if (e.target.closest('.hover-trigger') || e.target.closest('a') || e.target.closest('button')) {
+                    cursorOutline?.classList.add('hovered');
+                } else {
+                    cursorOutline?.classList.remove('hovered');
+                }
+
+                // Check for white background sections
+                if (e.target.closest('#contact') || e.target.closest('.white-section')) {
+                    setIsHoveringWhite(true);
+                } else {
+                    setIsHoveringWhite(false);
+                }
+            }, 16); // ~60fps
         };
 
-        document.addEventListener('mouseover', handleMouseOver);
+        document.addEventListener('mouseover', handleMouseOver, { passive: true });
 
         return () => {
             window.removeEventListener("mousemove", moveCursor);
             document.removeEventListener('mouseover', handleMouseOver);
+            if (rafId.current) {
+                cancelAnimationFrame(rafId.current);
+            }
+            clearTimeout(hoverTimeout);
         };
     }, []);
 
     return (
         <>
-            <div className={`cursor-dot ${isDark ? 'dark' : ''}`} ref={dotRef}></div>
-            <div className={`cursor-outline ${isDark ? 'dark' : ''}`} ref={outlineRef}></div>
+            <div
+                className={`cursor-dot ${isDark ? 'dark' : ''}`}
+                ref={dotRef}
+                style={{ willChange: 'transform' }}
+            />
+            <div
+                className={`cursor-outline ${isDark ? 'dark' : ''}`}
+                ref={outlineRef}
+                style={{ willChange: 'transform' }}
+            />
         </>
     );
 };

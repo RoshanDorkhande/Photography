@@ -1,25 +1,77 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { useData } from '../context/DataContext';
 
 const About = () => {
     const navigate = useNavigate();
     const { aboutData } = useData();
+    const containerRef = useRef(null);
 
-    if (!aboutData) return null; 
+    // GSAP animations with dynamic import
+    useEffect(() => {
+        let ctx;
+        (async () => {
+            const gsap = (await import('gsap')).default;
+
+            ctx = gsap.context(() => {
+                const container = containerRef.current;
+
+                // Slide-up animation
+                gsap.fromTo(container,
+                    { y: '100%' },
+                    {
+                        y: 0,
+                        duration: 0.8,
+                        ease: 'power3.out'
+                    }
+                );
+            });
+        })();
+
+        return () => ctx?.revert();
+    }, []);
+
+    // Exit animation
+    const handleClose = async () => {
+        const gsap = (await import('gsap')).default;
+        gsap.to(containerRef.current, {
+            y: '100%',
+            duration: 0.8,
+            ease: 'power3.inOut',
+            onComplete: () => navigate('/')
+        });
+    };
+
+    if (!aboutData) return null;
 
     return (
-        <motion.div
+        <div
             className="about-page"
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 200, overflowY: 'auto' }}
+            ref={containerRef}
+            style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                zIndex: 200,
+                overflowY: 'auto',
+                transform: 'translateY(100%)' // Initial state for GSAP
+            }}
             data-lenis-prevent
         >
-            <button className="close-btn hover-trigger" onClick={() => navigate('/')} style={{ position: 'fixed',top: '2rem', right: '4%', left: 'auto', color: '#000', borderColor: '#000' }}>
+            <button
+                className="close-btn hover-trigger"
+                onClick={handleClose}
+                style={{
+                    position: 'fixed',
+                    top: '2rem',
+                    right: '4%',
+                    left: 'auto',
+                    color: '#000',
+                    borderColor: '#000'
+                }}
+            >
                 &times;
             </button>
 
@@ -48,7 +100,7 @@ const About = () => {
                     </div>
                 </div>
             </div>
-        </motion.div>
+        </div>
     );
 };
 

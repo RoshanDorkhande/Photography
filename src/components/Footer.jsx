@@ -1,4 +1,5 @@
 import React from 'react';
+import { PhoneIcon, EnvelopeIcon, InstagramIcon, WhatsAppIcon } from './Icons';
 
 const Footer = () => {
     return (
@@ -18,16 +19,16 @@ const Footer = () => {
                     <div className="footer-details">
                         <div className="footer-col">
                             <h4>Address</h4>
-                            <p>Near Senior College,<br />Main Road, Bhadravati.</p>
+                            <p>Near Senior Shinde College,<br />Main Road, Bhadravati.</p>
                         </div>
 
                         <div className="footer-col">
                             <h4>Contact</h4>
                             <a href="tel:7719957189" className="icon-link">
-                                <i className="fas fa-phone-alt"></i> <span>7719957189</span>
+                                <PhoneIcon size={14} /> <span>7719957189</span>
                             </a>
                             <a href="mailto:skylinefilms@gmail.com" className="icon-link">
-                                <i className="fas fa-envelope"></i> <span>skylinefilms@gmail.com</span>
+                                <EnvelopeIcon size={14} /> <span>skylinefilms@gmail.com</span>
                             </a>
                         </div>
 
@@ -35,10 +36,10 @@ const Footer = () => {
                             <h4>Follow Us</h4>
                             <div className="social-links">
                                 <a href="https://www.instagram.com/skylinefilms_02?igsh=a2twbWQxc28yb3Q5" target="_blank" rel="noopener noreferrer" className="hover-trigger social-icon">
-                                    <i className="fab fa-instagram"></i>
+                                    <InstagramIcon size={20} />
                                 </a>
                                 <a href="https://wa.me/7719957189" target="_blank" rel="noopener noreferrer" className="hover-trigger social-icon">
-                                    <i className="fab fa-whatsapp"></i>
+                                    <WhatsAppIcon size={20} />
                                 </a>
                             </div>
                         </div>

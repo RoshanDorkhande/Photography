@@ -97,6 +97,17 @@ router.delete('/services/:id', async (req, res) => {
 });
 
 // 2. Works
+// 2. Works
+router.post('/works', async (req, res) => {
+    try {
+        const newWork = new Work(req.body);
+        await newWork.save();
+        res.json(newWork);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 router.put('/works/:index', async (req, res) => {
     try {
         const { id, ...updateData } = req.body;
@@ -109,6 +120,19 @@ router.put('/works/:index', async (req, res) => {
 
         const updatedWork = await Work.findOneAndUpdate({ id: id }, updateData, { new: true, upsert: true });
         res.json(updatedWork);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.delete('/works/:id', async (req, res) => {
+    try {
+        const work = await Work.findOne({ id: req.params.id });
+        if (work && work.imgPublicId) {
+            await cloudinary.uploader.destroy(work.imgPublicId);
+        }
+        await Work.findOneAndDelete({ id: req.params.id });
+        res.json({ message: 'Work deleted' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

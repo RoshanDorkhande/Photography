@@ -1,21 +1,24 @@
 :root {
-    --bg: #050505;
-    --text: #ffffff;
-    --text-muted: #888888;
+    --bg: #0a0a0a;
+    --text: #fff;
+    --text-muted: #888;
     --accent: #3b82f6;
     /* Electric Blue */
     --border: rgba(255, 255, 255, 0.1);
-    --font-main: 'Inter', sans-serif;
+    --font-main: 'Outfit', sans-serif;
 
     /* THE SMOOTH CURVE */
     --ease-smooth: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+html {
+    scroll-behavior: smooth;
 }
 
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    cursor: none;
 }
 
 body {
@@ -44,23 +47,32 @@ img {
     position: fixed;
     top: 0;
     left: 0;
-    transform: translate(-50%, -50%);
     border-radius: 50%;
     z-index: 9999;
     pointer-events: none;
+    /* GPU acceleration */
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
 }
 
 .cursor-dot {
     width: 8px;
     height: 8px;
     background-color: #fff;
+    /* Offset to center the dot */
+    margin-left: -4px;
+    margin-top: -4px;
 }
 
 .cursor-outline {
     width: 40px;
     height: 40px;
     border: 1px solid rgba(255, 255, 255, 0.5);
-    transition: width 0.2s, height 0.2s, background-color 0.2s;
+    transition: width 0.2s ease-out, height 0.2s ease-out, background-color 0.2s ease-out;
+    /* Offset to center the outline */
+    margin-left: -20px;
+    margin-top: -20px;
 }
 
 body:hover .cursor-outline.hovered {
@@ -266,17 +278,35 @@ nav {
     transform: translateY(0);
 }
 
-.hero-text.active .roll-wrapper {
-    transform: translateY(-100%);
+/* CSS-only text animation - no JavaScript needed */
+.roll-wrapper.animated {
+    animation: textRoll 4s ease-in-out infinite;
 }
 
-.hero-text.active .text-row:nth-child(2) .roll-wrapper {
-    transition-delay: 0.1s;
+@keyframes textRoll {
+
+    0%,
+    45% {
+        transform: translateY(0);
+    }
+
+    50%,
+    95% {
+        transform: translateY(-100%);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
+}
+
+.roll-wrapper.animated:nth-of-type(2) {
+    animation-delay: 0.1s;
 }
 
 .roll-item {
     display: block;
-    font-size: 10vw;
+    font-size: 9vw;
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: -0.04em;
@@ -782,10 +812,6 @@ footer {
         z-index: 1000;
     }
 
-    .rotatingcards {
-        top: 5%;
-        left: 10%;
-    }
 
     .main-hero {
         flex-direction: column;
@@ -1401,4 +1427,113 @@ input[type='file']::file-selector-button {
 
 input[type='file']::file-selector-button:hover {
     opacity: 0.8;
+}
+
+/* --- Lightbox --- */
+.lightbox-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.lightbox-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.lightbox-content {
+    position: relative;
+    max-width: 90%;
+    max-height: 90%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.lightbox-img {
+    max-width: 100%;
+    max-height: 85vh;
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.lightbox-close {
+    position: absolute;
+    top: -40px;
+    right: -10px;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 2.5rem;
+    cursor: pointer;
+    padding: 5px;
+    line-height: 1;
+    z-index: 1001;
+}
+
+.lightbox-caption {
+    color: white;
+    margin-top: 1rem;
+    font-size: 1.1rem;
+    text-align: center;
+}
+
+.lightbox-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    font-size: 3rem;
+    padding: 1rem;
+    cursor: pointer;
+    z-index: 1002;
+    transition: background 0.3s;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lightbox-nav:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.lightbox-prev {
+    left: 20px;
+}
+
+.lightbox-next {
+    right: 20px;
+}
+
+@media (max-width: 768px) {
+    .lightbox-nav {
+        font-size: 2rem;
+        width: 40px;
+        height: 40px;
+        padding: 0.5rem;
+    }
+
+    .lightbox-prev {
+        left: 10px;
+    }
+
+    .lightbox-next {
+        right: 10px;
+    }
 }
