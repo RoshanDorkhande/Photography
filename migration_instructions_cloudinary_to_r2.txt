@@ -1,0 +1,95 @@
+MIGRATION GUIDE: Cloudinary to Cloudflare R2
+
+1. PREREQUISITES (Cloudflare Dashboard)
+----------------------------------------
+a. Create a Bucket:
+   - Go to R2 in your Cloudflare dashboard.
+   - Create a new bucket (e.g., "photography-portfolio").
+   
+b. Get Credentials:
+   - Go to "Manage R2 API Tokens".
+   - Create a token with "Edit" permissions.
+   - You will get:
+     - Access Key ID
+     - Secret Access Key
+     - Endpoint (e.g., "https://<account-id>.r2.cloudflarestorage.com")
+
+c. Enable Public Access:
+   - Go to your bucket settings.
+   - Enable "Public Access" (R2.dev subdomain) OR connect a Custom Domain.
+   - Note the Public URL (e.g., "https://pub-xxxxxxxx.r2.dev").
+
+2. INSTALL DEPENDENCIES (Server Folder)
+----------------------------------------
+Run these commands in your "server" directory:
+npm uninstall cloudinary
+npm install @aws-sdk/client-s3
+
+3. UPDATE ENVIRONMENT VARIABLES (server/.env)
+----------------------------------------
+Remove CLOUDINARY_* variables and add:
+
+R2_ACCESS_KEY_ID=your_access_key_id
+R2_SECRET_ACCESS_KEY=your_secret_access_key
+R2_BUCKET_NAME=photography-portfolio
+R2_ACCOUNT_ID=your_account_id
+R2_PUBLIC_URL=https://pub-xxxxxxxx.r2.dev
+
+4. REFACTOR CODE (server/routes/api.js)
+----------------------------------------
+
+A. Setup Client (Replace Cloudinary Config)
+-------------------------------------------
+const { S3Client, PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
+
+const r2 = new S3Client({
+    region: 'auto',
+    endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+    credentials: {
+        accessKeyId: process.env.R2_ACCESS_KEY_ID,
+        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+    },
+});
+
+B. Update Upload Logic (POST /images, POST /upload)
+---------------------------------------------------
+Old (Cloudinary):
+  const result = await cloudinary.uploader.upload(dataURI, { folder: ... });
+  const url = result.secure_url;
+
+New (R2):
+  // Generate a unique filename
+  const filename = `photography-portfolio/${req.body.serviceId}/${Date.now()}-${req.file.originalname}`;
+  
+  // Upload Buffer directly (no need for dataURI conversion)
+  await r2.send(new PutObjectCommand({
+      Bucket: process.env.R2_BUCKET_NAME,
+      Key: filename,
+      Body: req.file.buffer,
+      ContentType: req.file.mimetype,
+  }));
+
+  // Manually construct the URL
+  const url = `${process.env.R2_PUBLIC_URL}/${filename}`;
+  // Use 'filename' as the ID if you need to delete it later, 
+  // or store 'filename' separately in your DB.
+
+C. Update Delete Logic (DELETE /images/:id)
+-------------------------------------------
+Old (Cloudinary):
+  await cloudinary.uploader.destroy(req.params.id);
+
+New (R2):
+  // Ensure req.params.id matches the "Key" (filename) used during upload
+  await r2.send(new DeleteObjectCommand({
+      Bucket: process.env.R2_BUCKET_NAME,
+      Key: req.params.id 
+  }));
+
+5. IMPORTANT NOTES
+-------------------
+- Transformations: R2 is storage only. It does NOT support on-the-fly resizing like Cloudinary (e.g. w=1000&q=80).
+- If you need resizing:
+  1. Use "Cloudflare Images" product instead of R2.
+  2. OR Resize in Node.js using 'sharp' library before uploading.
+  3. OR Use a Cloudflare Worker to resize on request.
