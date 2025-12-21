@@ -25,19 +25,32 @@ const PageLoader = () => (
 function App() {
   const location = useLocation();
 
-  // Scroll to top on route change
+  // Check if we're on an overlay route (service gallery or about)
+  const isOverlayRoute = location.pathname.startsWith('/service/') || location.pathname === '/about';
+
+  // Only scroll to top for non-overlay routes (like /admin)
   useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [location]);
+    if (!isOverlayRoute && location.pathname !== '/') {
+      window.scrollTo(0, 0);
+    }
+  }, [location.pathname, isOverlayRoute]);
 
   return (
     <>
       <Toaster position="bottom-right" reverseOrder={false} />
+
+      {/* Home is always rendered - never unmounts, preserving scroll position */}
+      <Home />
+
+      {/* Overlay routes render on TOP of Home */}
       <Suspense fallback={<PageLoader />}>
-        <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<Home />} />
+        <Routes location={location}>
+          {/* Home route - renders nothing since Home is always mounted above */}
+          <Route path="/" element={null} />
+          {/* ServiceGallery and About are fixed-position overlays */}
           <Route path="/service/:id" element={<ServiceGallery />} />
           <Route path="/about" element={<About />} />
+          {/* Admin replaces everything */}
           <Route path="/admin" element={<Admin />} />
         </Routes>
       </Suspense>
@@ -46,3 +59,5 @@ function App() {
 }
 
 export default App;
+
+
