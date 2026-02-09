@@ -7,7 +7,6 @@
   align-items: center;
   justify-content: center;
   margin-top: 2rem;
-  /* Space from nav buttons */
 }
 
 .image-stack.simple .hero-image {
@@ -15,7 +14,30 @@
   height: 100%;
   object-fit: cover;
   border-radius: 8px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  /* Use box-shadow instead of filter: drop-shadow for better performance */
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.3),
+    0 0 20px rgba(59, 130, 246, 0.3);
+  animation: glowPulse 4s ease-in-out infinite;
+  will-change: box-shadow;
+}
+
+/* Pulsing glow animation - uses box-shadow (GPU optimized) */
+@keyframes glowPulse {
+
+  0%,
+  100% {
+    box-shadow:
+      0 10px 40px rgba(0, 0, 0, 0.3),
+      0 0 20px rgba(59, 130, 246, 0.3);
+  }
+
+  50% {
+    box-shadow:
+      0 10px 40px rgba(0, 0, 0, 0.3),
+      0 0 40px rgba(59, 130, 246, 0.5),
+      0 0 60px rgba(59, 130, 246, 0.2);
+  }
 }
 
 /* Mobile responsiveness */
@@ -24,11 +46,42 @@
     width: 280px;
     height: 400px;
   }
+
+  .image-stack.simple .hero-image {
+    /* Simpler glow on mobile */
+    box-shadow:
+      0 10px 30px rgba(0, 0, 0, 0.3),
+      0 0 15px rgba(59, 130, 246, 0.25);
+    animation: glowPulseMobile 5s ease-in-out infinite;
+  }
+
+  @keyframes glowPulseMobile {
+
+    0%,
+    100% {
+      box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.3),
+        0 0 15px rgba(59, 130, 246, 0.2);
+    }
+
+    50% {
+      box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.3),
+        0 0 25px rgba(59, 130, 246, 0.35);
+    }
+  }
 }
 
 @media (max-width: 480px) {
   .image-stack.simple {
     width: 220px;
     height: 320px;
+  }
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .image-stack.simple .hero-image {
+    animation: none;
   }
 }

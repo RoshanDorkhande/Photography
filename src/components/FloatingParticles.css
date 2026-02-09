@@ -1,0 +1,111 @@
+/* Floating Particles - Optimized for performance */
+.particles-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.particle {
+    position: absolute;
+    border-radius: 50%;
+    /* Softer gradient without blur filter */
+    background: radial-gradient(circle at 30% 30%, rgba(59, 130, 246, 0.25), rgba(59, 130, 246, 0.05));
+    will-change: transform;
+    animation: float 25s ease-in-out infinite;
+}
+
+/* Reduced to 4 particles for better performance */
+.particle-1 {
+    width: 100px;
+    height: 100px;
+    top: 15%;
+    left: 8%;
+    animation-duration: 30s;
+    opacity: 0.5;
+}
+
+.particle-2 {
+    width: 140px;
+    height: 140px;
+    top: 55%;
+    right: 12%;
+    animation-duration: 35s;
+    animation-delay: -10s;
+    opacity: 0.4;
+}
+
+.particle-3 {
+    width: 80px;
+    height: 80px;
+    top: 35%;
+    left: 30%;
+    animation-duration: 28s;
+    animation-delay: -5s;
+    opacity: 0.35;
+}
+
+.particle-4 {
+    width: 120px;
+    height: 120px;
+    bottom: 25%;
+    right: 25%;
+    animation-duration: 32s;
+    animation-delay: -15s;
+    opacity: 0.4;
+}
+
+/* Hide extra particles on desktop too for performance */
+.particle-5,
+.particle-6 {
+    display: none;
+}
+
+/* Simplified float animation - transform only (GPU optimized) */
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translate(0, 0);
+    }
+
+    33% {
+        transform: translate(25px, -30px);
+    }
+
+    66% {
+        transform: translate(-15px, 20px);
+    }
+}
+
+/* Mobile: Only 2 particles */
+@media (max-width: 768px) {
+
+    .particle-3,
+    .particle-4 {
+        display: none;
+    }
+
+    .particle-1 {
+        width: 80px;
+        height: 80px;
+        opacity: 0.3;
+    }
+
+    .particle-2 {
+        width: 100px;
+        height: 100px;
+        opacity: 0.25;
+    }
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    .particle {
+        animation: none;
+    }
+}

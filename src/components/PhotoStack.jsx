@@ -24,13 +24,11 @@ const PhotoStack = () => {
   }, []);
 
   return (
-    <div className="image-stack simple"
-    fetchPriority='high'>
+    <div className="image-stack simple" fetchPriority='high'>
       <img
         src={images[currentIndex].src}
         alt={images[currentIndex].alt}
         className="hero-image"
-        
       />
     </div>
   );

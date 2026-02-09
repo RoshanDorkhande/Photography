@@ -1,12 +1,14 @@
 import React from 'react';
 import { useData } from '../context/DataContext';
 import PhotoStack from './PhotoStack';
+import FloatingParticles from './FloatingParticles';
 
 const Hero = () => {
     const { heroSettings } = useData();
 
     return (
         <header className="hero">
+            <FloatingParticles />
             <div className="main-hero">
                 <div className="hero-text hover-trigger">
                     <div className="text-row">

@@ -1,0 +1,217 @@
+/* HeroExperimental.css - Card spread hero section styling */
+
+.hero-experimental {
+    position: relative;
+    width: 100%;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 6rem 1rem 4rem;
+    background: #fff;
+    overflow: hidden;
+}
+
+/* Header Text */
+.hero-exp-header {
+    text-align: center;
+    z-index: 10;
+    margin-bottom: 0.5rem;
+    opacity: 0;
+    transform: translateY(-30px);
+}
+
+.hero-exp-header.animated {
+    animation: heroHeaderEnter 1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+}
+
+@keyframes heroHeaderEnter {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hero-exp-tagline {
+    color: #a1a1aa;
+    font-weight: 500;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+
+.hero-exp-title {
+    font-size: clamp(3rem, 10vw, 6.25rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: #18181b;
+    margin: 0;
+}
+
+/* Image Spread Area */
+.hero-exp-spread {
+    position: relative;
+    width: 100%;
+    max-width: 1600px;
+    height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+@media (min-width: 768px) {
+    .hero-exp-spread {
+        height: 600px;
+    }
+}
+
+/* Image Cards */
+.hero-exp-card {
+    position: absolute;
+    width: 160px;
+    height: 220px;
+    border-radius: 35px;
+    overflow: hidden;
+    background: #fafafa;
+    border: 1px solid rgba(0, 0, 0, 0.03);
+    box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.12);
+    pointer-events: auto;
+    /* Initial hidden state - will be animated by GSAP */
+    opacity: 0;
+    transform: translateY(800px);
+    /* GPU acceleration */
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+@media (min-width: 768px) {
+    .hero-exp-card {
+        width: 240px;
+        height: 320px;
+        border-radius: 50px;
+    }
+}
+
+.hero-exp-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    user-select: none;
+    filter: grayscale(0.2);
+    transition: filter 0.7s ease, transform 0.7s ease;
+    cursor: pointer;
+}
+
+@media (min-width: 768px) {
+    .hero-exp-card img {
+        filter: grayscale(0.3);
+    }
+}
+
+.hero-exp-card:hover img {
+    filter: grayscale(0);
+    transform: scale(1.05);
+}
+
+/* Bottom Content */
+.hero-exp-bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: 36rem;
+    margin: 2rem auto 0;
+    padding: 0 1.5rem;
+    z-index: 10;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.hero-exp-bottom.animated {
+    animation: heroBottomEnter 1s ease-out forwards;
+    animation-delay: 2.8s;
+}
+
+@keyframes heroBottomEnter {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (min-width: 768px) {
+    .hero-exp-bottom {
+        margin-top: 2.5rem;
+    }
+}
+
+.hero-exp-description {
+    color: #000;
+    font-size: 0.875rem;
+    line-height: 1.7;
+    margin-bottom: 2rem;
+    font-weight: 400;
+}
+
+@media (min-width: 768px) {
+    .hero-exp-description {
+        font-size: 1.0625rem;
+        margin-bottom: 2.5rem;
+    }
+}
+
+.hero-exp-cta {
+    background: #18181b;
+    color: #fff;
+    padding: 0.875rem 2.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+@media (min-width: 768px) {
+    .hero-exp-cta {
+        padding: 1rem 3rem;
+        font-size: 0.8125rem;
+    }
+}
+
+.hero-exp-cta:hover {
+    background: #3f3f46;
+    transform: scale(1.05);
+}
+
+.hero-exp-cta:active {
+    transform: scale(0.95);
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+
+    .hero-exp-header,
+    .hero-exp-bottom {
+        animation: none;
+        opacity: 1;
+        transform: none;
+    }
+
+    .hero-exp-card {
+        opacity: 1;
+        transform: none;
+    }
+
+    .hero-exp-card img {
+        transition: none;
+    }
+}
